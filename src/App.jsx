@@ -4,6 +4,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProjectDashboard from "./pages/ProjectDashboard";
+import ProjectDirectory from "./pages/ProjectDirectory";
+import PageNotFound from "./pages/PageNotFound";
+import PublicRoute from "./components/PublicRoute";
 
 const router = createBrowserRouter([
   {
@@ -15,15 +18,31 @@ const router = createBrowserRouter([
       },
       {
         path: "/login",
-        element: <Login />,
+        element: (
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        ),
       },
       {
-        path: "signup",
-        element: <Signup />,
+        path: "/signup",
+        element: (
+          <PublicRoute>
+            <Signup />
+          </PublicRoute>
+        ),
       },
       {
-        path: "projects",
+        path: "/directory",
+        element: <ProjectDirectory />,
+      },
+      {
+        path: "/projects/:projectId",
         element: <ProjectDashboard />,
+      },
+      {
+        path: "*",
+        element: <PageNotFound />,
       },
     ],
   },
