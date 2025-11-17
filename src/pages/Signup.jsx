@@ -1,7 +1,79 @@
+import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import authService from "../api/auth";
 
 function Signup() {
+  const navigate = useNavigate();
+  const [step, setStep] = useState("form");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [otp, setOtp] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSignup = async (event) => {
+    event.preventDefault();
+    setError("");
+    setInfo("");
+    setIsSubmitting(true);
+    try {
+      const response = await authService.signup(
+        formData.name.trim(),
+        formData.email.trim(),
+        formData.password,
+      );
+      setStep("verify");
+      setInfo(response?.message || "OTP sent successfully.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to sign up. Try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (event) => {
+    event.preventDefault();
+    setError("");
+    setInfo("");
+    setIsVerifying(true);
+    try {
+      const response = await authService.verifyOtp(
+        formData.email.trim(),
+        otp.trim(),
+      );
+      if (response?.accessToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+      }
+      if (response?.refreshToken) {
+        localStorage.setItem("refreshToken", response.refreshToken);
+      }
+      window.dispatchEvent(new Event("auth:change"));
+      setInfo("Account verified. Redirecting...");
+      setTimeout(() => navigate("/"), 800);
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid OTP. Try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const resetToForm = () => {
+    setStep("form");
+    setOtp("");
+    setInfo("");
+  };
+
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md">
@@ -13,77 +85,135 @@ function Signup() {
         </div>
 
         <div className="bg-white border border-gray-200 p-8">
-          <form className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
-                placeholder="you@example.com"
-              />
-            </div>
+          {step === "form" && (
+            <form className="space-y-6" onSubmit={handleSignup}>
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
+                  placeholder="Aarav Sharma"
+                />
+              </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
-                placeholder="Create a password"
-              />
-            </div>
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
+                  placeholder="you@example.com"
+                />
+              </div>
 
-            <div>
-              <label
-                htmlFor="otp"
-                className="block text-sm font-medium text-gray-700 mb-2"
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
+                  placeholder="Create a password"
+                />
+              </div>
+
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              {info && <p className="text-sm text-green-600">{info}</p>}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-gray-900 text-white py-2 px-4 rounded hover:bg-gray-800 text-sm font-medium disabled:opacity-70"
               >
-                Verify OTP
-              </label>
-              <div className="flex flex-col sm:flex-row gap-3">
+                {isSubmitting ? "Sending OTP..." : "Sign Up"}
+              </button>
+            </form>
+          )}
+
+          {step === "verify" && (
+            <form className="space-y-6" onSubmit={handleVerifyOtp}>
+              <div>
+                <p className="text-sm text-gray-700 mb-1">
+                  Enter the 6-digit OTP sent to
+                </p>
+                <p className="text-sm font-medium text-gray-900">
+                  {formData.email}
+                </p>
+                <button
+                  type="button"
+                  onClick={resetToForm}
+                  className="mt-2 text-xs text-gray-600 underline"
+                >
+                  Use a different email
+                </button>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="otp"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Verification Code
+                </label>
                 <input
                   id="otp"
                   name="otp"
                   type="text"
                   inputMode="numeric"
-                  pattern="[0-9]{6}"
-                  placeholder="Enter 6-digit OTP"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(event) =>
+                    setOtp(event.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400 tracking-[0.4em]"
+                  placeholder="••••••"
                 />
-                <button
-                  type="button"
-                  className="sm:w-auto w-full bg-gray-900 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800"
-                >
-                  Verify OTP
-                </button>
+                <p className="mt-2 text-xs text-gray-500">
+                  Didn’t receive it? Check spam or request another code.
+                </p>
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Didn’t receive it? Check your inbox or request a new code.
-              </p>
-            </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gray-900 text-white py-2 px-4 rounded hover:bg-gray-800 text-sm font-medium"
-            >
-              Sign Up
-            </button>
-          </form>
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              {info && <p className="text-sm text-green-600">{info}</p>}
+
+              <button
+                type="submit"
+                disabled={isVerifying}
+                className="w-full bg-gray-900 text-white py-2 px-4 rounded hover:bg-gray-800 text-sm font-medium disabled:opacity-70"
+              >
+                {isVerifying ? "Verifying..." : "Verify & Continue"}
+              </button>
+            </form>
+          )}
 
           <div className="mt-6">
             <div className="relative">
@@ -97,7 +227,8 @@ function Signup() {
 
             <button
               type="button"
-              className="mt-6 w-full border border-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2"
+              disabled
+              className="mt-6 w-full border border-gray-300 text-gray-700 py-2 px-4 rounded text-sm font-medium flex items-center justify-center gap-2 disabled:bg-gray-50"
             >
               <FaGoogle />
               Continue with Google

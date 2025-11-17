@@ -1,9 +1,9 @@
 import { Navigate } from "react-router";
 
 export default function PublicRoute({ children }) {
-  const isAuthenticated = localStorage.getItem("token");
+  const accessToken = localStorage.getItem("accessToken");
 
-  if (isAuthenticated) {
+  if (accessToken) {
     return <Navigate to="/" replace />;
   }
 
