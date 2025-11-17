@@ -35,7 +35,7 @@ function Header() {
             Colearn
           </Link>
           <nav className="flex items-center gap-6 text-sm text-gray-700">
-            <Link to="/projects" className="hover:text-gray-900">
+            <Link to="/directory" className="hover:text-gray-900">
               Projects
             </Link>
             {isAuthenticated ? (
