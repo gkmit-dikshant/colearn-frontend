@@ -1,12 +1,12 @@
 import API from "./apiClient";
 import endpoints from "./apiEndpoints";
 export const projectService = {
-  create: async (title, description, skills, locations_id) => {
+  create: async (title, description, skills, location_id) => {
     const resp = await API.post(endpoints.projects.create, {
       title,
       description,
       skills,
-      locations_id,
+      location_id,
     });
     return resp.data;
   },

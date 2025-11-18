@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import authService from "../api/auth";
 import { projectService } from "../api/project";
 import { applicationService } from "../api/application";
+import CreateProjectModal from "../components/CreateProjectModal";
 
 function Profile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [projects, setProjects] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,6 +71,24 @@ function Profile() {
       isMounted = false;
     };
   }, []);
+
+  const handleCreateProjectSuccess = (projectId) => {
+    // Refresh projects list
+    const fetchProjects = async () => {
+      try {
+        const projectsResponse = await projectService.getAllofLoginUser();
+        const projectsData =
+          projectsResponse?.projects ||
+          (Array.isArray(projectsResponse) ? projectsResponse : []);
+        setProjects(projectsData);
+      } catch (err) {
+        console.error("Error refreshing projects:", err);
+      }
+    };
+    fetchProjects();
+    // Redirect to project dashboard
+    navigate(`/projects/${projectId}`);
+  };
 
   const renderSkills = (skills) => {
     if (!skills || skills.length === 0) {
@@ -156,9 +177,17 @@ function Profile() {
 
         {/* My Projects Section */}
         <div className="bg-white border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-medium text-gray-900 mb-4">
-            My Projects ({projects.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-medium text-gray-900">
+              My Projects ({projects.length})
+            </h2>
+            <button
+              onClick={() => setModalOpen(true)}
+              className="bg-gray-900 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800"
+            >
+              Create Project
+            </button>
+          </div>
           {projects.length === 0 ? (
             <p className="text-gray-600 text-sm">No projects yet.</p>
           ) : (
@@ -267,6 +296,12 @@ function Profile() {
           )}
         </div>
       </div>
+
+      <CreateProjectModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={handleCreateProjectSuccess}
+      />
     </div>
   );
 }
