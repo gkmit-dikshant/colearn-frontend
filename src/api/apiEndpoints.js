@@ -4,12 +4,13 @@ const endpoints = {
     signup: "/auth/signup",
     refresh: "/auth/refresh",
     verifyOtp: "/auth/verify-otp",
+    myDetails: "/auth/me"
   },
   projects: {
     create: "/projects",
     getAll: "/projects",
     getById: (projectId) => `/projects/${projectId}`,
-    getAllOfLoginUser: (userId) => `/projects/${userId}`,
+    getAllOfLoginUser: "/projects/me",
   },
   applications: {
     getAllOfProject: (projectId) => `/applications/projects/${projectId}`,

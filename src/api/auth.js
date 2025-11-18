@@ -26,6 +26,10 @@ const authService = {
     });
     return resp.data;
   },
+  getMyDetails: async () => {
+    const resp = await API.get(endpoints.auth.myDetails);
+    return resp.data;
+  }
 };
 
 export default authService;

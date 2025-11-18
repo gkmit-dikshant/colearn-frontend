@@ -39,13 +39,18 @@ function Header() {
               Projects
             </Link>
             {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-sm text-gray-700 hover:text-gray-900"
-              >
-                Logout
-              </button>
+              <>
+                <Link to="/profile" className="hover:text-gray-900">
+                  Profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-sm text-gray-700 hover:text-gray-900"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <div className="flex items-center gap-3">
                 <Link to="/login" className="hover:text-gray-900">

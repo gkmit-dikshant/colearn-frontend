@@ -5,8 +5,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProjectDashboard from "./pages/ProjectDashboard";
 import ProjectDirectory from "./pages/ProjectDirectory";
+import Profile from "./pages/Profile";
 import PageNotFound from "./pages/PageNotFound";
 import PublicRoute from "./components/PublicRoute";
+import ProtectedRoute from "./components/ProjectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -39,6 +41,14 @@ const router = createBrowserRouter([
       {
         path: "/projects/:projectId",
         element: <ProjectDashboard />,
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "*",
