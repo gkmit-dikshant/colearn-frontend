@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -16,7 +16,7 @@ import {
 import { projectService } from "../api/project";
 import { PROJECT_LOCATIONS, PROJECT_SKILLS } from "../data/projectOptions";
 
-function CreateProjectModal({ open, onClose, onSuccess }) {
+function EditProjectModal({ open, project, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -25,6 +25,21 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        title: project.title || "",
+        description: project.description || "",
+        skills: (project.skills || []).map((skill) =>
+          typeof skill === "object" ? skill.id : skill,
+        ),
+        location_id:
+          project.location?.id || project.location_id || project.locationId || "",
+      });
+      setError("");
+    }
+  }, [project]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,23 +61,21 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    if (!project?.id) return;
+
     setLoading(true);
+    setError("");
 
     try {
-      // Convert skills array to array of numbers
-      const skillsArray = formData.skills.map((id) =>
-        typeof id === "string" ? parseInt(id, 10) : id,
-      );
-
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
-        skills: skillsArray,
+        skills: formData.skills.map((id) =>
+          typeof id === "string" ? parseInt(id, 10) : id,
+        ),
         location_id: parseInt(formData.location_id, 10),
       };
 
-      // Validate required fields
       if (!payload.title) {
         throw new Error("Title is required");
       }
@@ -70,34 +83,23 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
         throw new Error("Description is required");
       }
       if (isNaN(payload.location_id)) {
-        throw new Error("Location ID must be a valid number");
+        throw new Error("Location is required");
       }
 
-      const response = await projectService.create(
-        payload.title,
-        payload.description,
-        payload.skills,
-        payload.location_id,
-      );
+      const response = await projectService.update(project.id, payload);
+      const updatedProject = response?.project || response?.data || response;
 
-      if (response?.project?.id) {
-        // Reset form
-        setFormData({
-          title: "",
-          description: "",
-          skills: [],
-          location_id: "",
-        });
-        onSuccess(response.project.id);
-        onClose();
-      } else {
-        throw new Error(response?.message || "Failed to create project");
+      if (!updatedProject) {
+        throw new Error("Failed to update project. Please try again.");
       }
+
+      onSuccess(updatedProject);
+      onClose();
     } catch (err) {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Failed to create project. Please try again.",
+          "Failed to update project. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -106,13 +108,6 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
 
   const handleClose = () => {
     if (!loading) {
-      setFormData({
-        title: "",
-        description: "",
-        skills: [],
-        location_id: "",
-      });
-      setError("");
       onClose();
     }
   };
@@ -120,7 +115,7 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Create New Project</DialogTitle>
+        <DialogTitle>Edit Project</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 2 }}>
             <TextField
@@ -144,10 +139,10 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
               disabled={loading}
             />
             <FormControl fullWidth>
-              <InputLabel id="skills-label">Skills</InputLabel>
+              <InputLabel id="edit-skills-label">Skills</InputLabel>
               <Select
-                labelId="skills-label"
-                id="skills"
+                labelId="edit-skills-label"
+                id="edit-skills"
                 multiple
                 value={formData.skills}
                 onChange={handleSkillsChange}
@@ -162,10 +157,10 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
               </Select>
             </FormControl>
             <FormControl fullWidth required>
-              <InputLabel id="location-label">Location</InputLabel>
+              <InputLabel id="edit-location-label">Location</InputLabel>
               <Select
-                labelId="location-label"
-                id="location_id"
+                labelId="edit-location-label"
+                id="edit-location"
                 name="location_id"
                 value={formData.location_id}
                 onChange={handleChange}
@@ -197,7 +192,7 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? "Creating..." : "Create Project"}
+            {loading ? "Saving..." : "Save Changes"}
           </Button>
         </DialogActions>
       </form>
@@ -205,4 +200,6 @@ function CreateProjectModal({ open, onClose, onSuccess }) {
   );
 }
 
-export default CreateProjectModal;
+export default EditProjectModal;
+
+

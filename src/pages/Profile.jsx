@@ -13,6 +13,8 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [projectFilter, setProjectFilter] = useState("owner");
+  const [projectsLoading, setProjectsLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -27,21 +29,6 @@ function Profile() {
         if (!isMounted) return;
         setUser(userResponse?.user || null);
 
-        // Fetch user projects
-        try {
-          const projectsResponse = await projectService.getAllofLoginUser();
-          if (!isMounted) return;
-          // Handle different response structures
-          const projectsData =
-            projectsResponse?.projects ||
-            (Array.isArray(projectsResponse) ? projectsResponse : []);
-          setProjects(projectsData);
-        } catch (err) {
-          console.error("Error fetching projects:", err);
-          if (!isMounted) return;
-          setProjects([]);
-        }
-
         // Fetch user applications
         try {
           const applicationsResponse =
@@ -55,9 +42,7 @@ function Profile() {
         }
       } catch (err) {
         if (!isMounted) return;
-        setError(
-          err.response?.data?.message || "Unable to load profile data.",
-        );
+        setError(err.response?.data?.message || "Unable to load profile data.");
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -72,11 +57,44 @@ function Profile() {
     };
   }, []);
 
+  // Fetch projects when filter changes
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProjects = async () => {
+      setProjectsLoading(true);
+      try {
+        const projectsResponse =
+          await projectService.getAllofLoginUser(projectFilter);
+        if (!isMounted) return;
+        const projectsData =
+          projectsResponse?.projects ||
+          (Array.isArray(projectsResponse) ? projectsResponse : []);
+        setProjects(projectsData);
+      } catch (err) {
+        console.error("Error fetching projects:", err);
+        if (!isMounted) return;
+        setProjects([]);
+      } finally {
+        if (isMounted) {
+          setProjectsLoading(false);
+        }
+      }
+    };
+
+    fetchProjects();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [projectFilter]);
+
   const handleCreateProjectSuccess = (projectId) => {
-    // Refresh projects list
+    // Refresh projects list with current filter
     const fetchProjects = async () => {
       try {
-        const projectsResponse = await projectService.getAllofLoginUser();
+        const projectsResponse =
+          await projectService.getAllofLoginUser(projectFilter);
         const projectsData =
           projectsResponse?.projects ||
           (Array.isArray(projectsResponse) ? projectsResponse : []);
@@ -93,7 +111,9 @@ function Profile() {
   const renderSkills = (skills) => {
     if (!skills || skills.length === 0) {
       return (
-        <span className="text-xs text-gray-500 italic">No skills specified</span>
+        <span className="text-xs text-gray-500 italic">
+          No skills specified
+        </span>
       );
     }
     return skills.map((skill, idx) => (
@@ -145,14 +165,20 @@ function Profile() {
     );
   }
 
+  const handleFilterChange = (role) => {
+    setProjectFilter(role);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* User Details Section */}
+        {/* User Profile Section with Create Project Button */}
         <div className="bg-white border border-gray-200 p-6 mb-6">
-          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-4">
-            Profile
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">
+              Profile
+            </h1>
+          </div>
           {user ? (
             <div className="space-y-4">
               <div>
@@ -175,21 +201,65 @@ function Profile() {
           )}
         </div>
 
-        {/* My Projects Section */}
+        {/* Projects Section */}
         <div className="bg-white border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-medium text-gray-900">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-gray-900 text-white px-4 py-2 my-1 rounded text-sm font-medium hover:bg-gray-800 w-full sm:w-auto"
+          >
+            Create Project
+          </button>
+          <div className="mb-6">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">
               My Projects ({projects.length})
             </h2>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="bg-gray-900 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800"
-            >
-              Create Project
-            </button>
+            {/* Toggle Switch */}
+            <div className="flex items-center gap-4">
+              <span
+                className={`text-sm font-medium transition ${
+                  projectFilter === "owner" ? "text-gray-900" : "text-gray-400"
+                }`}
+              >
+                Owned
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  handleFilterChange(
+                    projectFilter === "owner" ? "member" : "owner",
+                  )
+                }
+                disabled={projectsLoading}
+                className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 ${
+                  projectFilter === "owner" ? "bg-gray-900" : "bg-gray-300"
+                } ${projectsLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                aria-label="Toggle between owned and joined projects"
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                    projectFilter === "owner"
+                      ? "translate-x-1"
+                      : "translate-x-9"
+                  }`}
+                />
+              </button>
+              <span
+                className={`text-sm font-medium transition ${
+                  projectFilter === "member" ? "text-gray-900" : "text-gray-400"
+                }`}
+              >
+                Joined
+              </span>
+            </div>
           </div>
-          {projects.length === 0 ? (
-            <p className="text-gray-600 text-sm">No projects yet.</p>
+          {projectsLoading ? (
+            <p className="text-gray-600 text-sm">Loading projects...</p>
+          ) : projects.length === 0 ? (
+            <p className="text-gray-600 text-sm">
+              {projectFilter === "owner"
+                ? "You don't own any projects yet."
+                : "You haven't joined any projects yet."}
+            </p>
           ) : (
             <div className="space-y-4">
               {projects.map((project) => (
@@ -307,4 +377,3 @@ function Profile() {
 }
 
 export default Profile;
-

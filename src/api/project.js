@@ -18,8 +18,15 @@ export const projectService = {
     const resp = await API.get(endpoints.projects.getAll);
     return resp.data;
   },
-  getAllofLoginUser: async () => {
-    const resp = await API.get(endpoints.projects.getAllOfLoginUser);
+  getAllofLoginUser: async (role) => {
+    const resp = await API.get(endpoints.projects.getAllOfLoginUser(role));
+    return resp.data;
+  },
+  update: async (projectId, data) => {
+    const resp = await API.patch(
+      endpoints.projects.updateById(projectId),
+      data,
+    );
     return resp.data;
   },
 };

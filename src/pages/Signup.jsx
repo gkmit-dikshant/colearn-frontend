@@ -102,7 +102,7 @@ function Signup() {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
-                  placeholder="Aarav Sharma"
+                  placeholder="Name"
                 />
               </div>
 
@@ -215,7 +215,7 @@ function Signup() {
             </form>
           )}
 
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -233,7 +233,7 @@ function Signup() {
               <FaGoogle />
               Continue with Google
             </button>
-          </div>
+          </div> */}
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">

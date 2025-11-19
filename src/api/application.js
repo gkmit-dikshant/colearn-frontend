@@ -12,16 +12,18 @@ export const applicationService = {
     const resp = await API.get(endpoints.applications.getAllOfLoginUser);
     return resp.data;
   },
-  applyToProject: async (projectId) => {
+  applyToProject: async (projectId, message) => {
     const resp = await API.post(
       endpoints.applications.applyToProject(projectId),
+      { message },
     );
     return resp.data;
   },
-  updateStatus: async (projectId, applicationId) => {
+  updateStatus: async (projectId, applicationId, status) => {
     const resp = await API.post(
       endpoints.applications.updateStatus(projectId, applicationId),
+      { status },
     );
-    return resp;
+    return resp.data;
   },
 };
