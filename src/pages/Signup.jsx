@@ -32,7 +32,7 @@ function Signup() {
     try {
       const response = await authService.signup(
         formData.name.trim(),
-        formData.email.trim(),
+        formData.email.trim().toLowerCase(),
         formData.password,
         formData.bio.trim() ? formData.bio.trim() : "",
       );

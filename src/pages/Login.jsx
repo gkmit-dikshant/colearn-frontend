@@ -23,7 +23,7 @@ function Login() {
     setIsSubmitting(true);
     try {
       const response = await authService.login(
-        formData.email.trim(),
+        formData.email.trim()?.toLowerCase(),
         formData.password,
       );
       if (response?.accessToken) {
