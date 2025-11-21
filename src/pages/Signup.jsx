@@ -10,12 +10,14 @@ function Signup() {
     name: "",
     email: "",
     password: "",
+    bio: "",
   });
   const [otp, setOtp] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -32,6 +34,7 @@ function Signup() {
         formData.name.trim(),
         formData.email.trim(),
         formData.password,
+        formData.bio.trim() ? formData.bio.trim() : "",
       );
       setStep("verify");
       setInfo(response?.message || "OTP sent successfully.");
@@ -132,15 +135,42 @@ function Signup() {
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-2 pr-14 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
+                    placeholder="Create a password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="bio"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Bio <span className="text-gray-400">(optional)</span>
+                </label>
+                <textarea
+                  id="bio"
+                  name="bio"
+                  value={formData.bio}
                   onChange={handleChange}
-                  required
+                  rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-gray-900 text-gray-900 placeholder-gray-400"
-                  placeholder="Create a password"
+                  placeholder="Tell others a bit about you (optional)"
                 />
               </div>
 

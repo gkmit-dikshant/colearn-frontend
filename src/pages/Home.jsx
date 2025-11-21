@@ -35,12 +35,6 @@ export default function Home() {
                 Users can explore projects requiring skills.
               </p>
             </div>
-            <div className="bg-white border border-gray-200 p-8 text-center sm:col-span-2 lg:col-span-1">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Learn with Guidance
-              </h3>
-              <p className="text-sm text-gray-600">Expert Mentor assistance.</p>
-            </div>
           </div>
         </div>
       </section>

@@ -13,7 +13,9 @@ function ProjectDashboard() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(typeof window !== "undefined" && localStorage.getItem("accessToken")),
+    Boolean(
+      typeof window !== "undefined" && localStorage.getItem("accessToken"),
+    ),
   );
   const [applications, setApplications] = useState([]);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
@@ -181,9 +183,21 @@ function ProjectDashboard() {
           <div className="bg-white border border-gray-200 p-6 space-y-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h1 className="text-3xl font-medium text-gray-900">
-                  {project.title}
-                </h1>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl font-medium text-gray-900">
+                    {project.title}
+                  </h1>
+                  {isOwner && (
+                    <span className="rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                      Owner
+                    </span>
+                  )}
+                  {isMember && (
+                    <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                      Member
+                    </span>
+                  )}
+                </div>
                 <p className="mt-4 text-sm text-gray-600">
                   {project.description}
                 </p>
@@ -253,15 +267,6 @@ function ProjectDashboard() {
               </div>
             </div>
 
-            {(isOwner || isMember) && (
-              <div className="rounded border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm font-medium text-gray-900">Chat</p>
-                <p className="mt-1 text-sm text-gray-600">
-                  Chat is under development.
-                </p>
-              </div>
-            )}
-
             {isOwner && (
               <div className="space-y-4 rounded border border-gray-200 bg-gray-50 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -330,7 +335,10 @@ function ProjectDashboard() {
                           <button
                             type="button"
                             onClick={() =>
-                              handleApplicationAction(application.id, "accepted")
+                              handleApplicationAction(
+                                application.id,
+                                "accepted",
+                              )
                             }
                             className="rounded border border-green-600 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={applicationActionId === application.id}
@@ -343,7 +351,10 @@ function ProjectDashboard() {
                           <button
                             type="button"
                             onClick={() =>
-                              handleApplicationAction(application.id, "rejected")
+                              handleApplicationAction(
+                                application.id,
+                                "rejected",
+                              )
                             }
                             className="rounded border border-red-600 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                             disabled={applicationActionId === application.id}
