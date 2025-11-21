@@ -12,6 +12,7 @@ const endpoints = {
     getById: (projectId) => `/projects/${projectId}`,
     updateById: (projectId) => `/projects/${projectId}`,
     getAllOfLoginUser: (role) => `/projects/me?role=${role}`,
+    getMembers: (projectId) => `/projects/${projectId}/members`,
   },
   applications: {
     getAllOfProject: (projectId) => `/applications/projects/${projectId}`,

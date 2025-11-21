@@ -22,6 +22,9 @@ function ProjectDashboard() {
   const [applicationsError, setApplicationsError] = useState("");
   const [applicationActionId, setApplicationActionId] = useState(null);
   const [applicationActionStatus, setApplicationActionStatus] = useState("");
+  const [members, setMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState("");
 
   useEffect(() => {
     if (!projectId) return;
@@ -125,6 +128,32 @@ function ProjectDashboard() {
   useEffect(() => {
     loadApplications();
   }, [loadApplications]);
+
+  const loadMembers = useCallback(async () => {
+    if (!projectId || (!isOwner && !isMember)) {
+      setMembers([]);
+      return;
+    }
+
+    setMembersLoading(true);
+    setMembersError("");
+    try {
+      const response = await projectService.getMembers(projectId);
+      const membersData = response?.members || [];
+      setMembers(membersData);
+    } catch (err) {
+      setMembers([]);
+      setMembersError(
+        err.response?.data?.message || "Unable to load members.",
+      );
+    } finally {
+      setMembersLoading(false);
+    }
+  }, [projectId, isOwner, isMember]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   const handleApplicationAction = async (applicationId, status) => {
     if (!project?.id) return;
@@ -366,6 +395,70 @@ function ProjectDashboard() {
                           </button>
                         </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(isOwner || isMember) && (
+              <div className="space-y-4 rounded border border-gray-200 bg-gray-50 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-base font-medium text-gray-900">
+                      Project Members ({members.length})
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      View all members of this project.
+                    </p>
+                  </div>
+                  {membersLoading && (
+                    <p className="text-sm text-gray-500">Loading...</p>
+                  )}
+                </div>
+
+                {membersError && (
+                  <p className="text-sm text-red-600">{membersError}</p>
+                )}
+
+                {!membersLoading && !membersError && members.length === 0 && (
+                  <p className="text-sm text-gray-600">No members yet.</p>
+                )}
+
+                <div className="space-y-3">
+                  {members.map((member) => (
+                    <div
+                      key={member.id}
+                      className="rounded border border-gray-200 bg-white p-4"
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {member.name || "Unknown user"}
+                            </p>
+                            {member.role === "owner" && (
+                              <span className="rounded-full bg-gray-900 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white">
+                                Owner
+                              </span>
+                            )}
+                            {member.role === "member" && (
+                              <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                                Member
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {member.email || "No email provided"}
+                          </p>
+                          {member.joined_at && (
+                            <p className="mt-1 text-xs text-gray-500">
+                              Joined on{" "}
+                              {new Date(member.joined_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

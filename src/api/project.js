@@ -29,4 +29,8 @@ export const projectService = {
     );
     return resp.data;
   },
+  getMembers: async (projectId) => {
+    const resp = await API.get(endpoints.projects.getMembers(projectId));
+    return resp.data;
+  },
 };
